@@ -1764,22 +1764,10 @@
   function formatMagnitude(valueSq) {
     if (!valueSq) return "0";
 
-    let coefficient = 1;
-    let radicand = valueSq;
+    const root = Math.round(Math.sqrt(valueSq));
+    if (root * root === valueSq) return String(root);
 
-    for (let factor = Math.floor(Math.sqrt(valueSq)); factor >= 2; factor -= 1) {
-      const square = factor * factor;
-      if (valueSq % square === 0) {
-        coefficient = factor;
-        radicand = valueSq / square;
-        break;
-      }
-    }
-
-    if (radicand === 1) return String(coefficient);
-    if (coefficient === 1) return `√${radicand}`;
-
-    return `${coefficient}√${radicand}`;
+    return `√${valueSq}`;
   }
 
   function valueTone(valueSq) {
