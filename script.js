@@ -41,10 +41,20 @@
       imag: -1,
       color: "#12a39b",
       soft: "#ddf7f4"
+    },
+    z0: {
+      key: "z0",
+      label: "零雷",
+      symbol: "0",
+      real: 0,
+      imag: 0,
+      color: "#7b8794",
+      soft: "#edf1f5"
     }
   };
 
   const TYPE_ORDER = ["p1", "n1", "pi", "ni"];
+  const ZERO_TYPE_ORDER = [...TYPE_ORDER, "z0"];
 
   const DIFFICULTIES = {
     normal: {
@@ -62,12 +72,156 @@
       cols: 15,
       mines: 47,
       chances: 4
+    },
+    hell: {
+      key: "hell",
+      label: "地狱",
+      rows: 11,
+      cols: 11,
+      mines: 25,
+      chances: 4,
+      zeroMines: true
     }
   };
 
-  const WHEEL_KEYS = [...TYPE_ORDER, "clear"];
-  const WHEEL_ANGLES = [-90, -18, 54, 126, 198];
+  const TUTORIAL_STEPS = [
+    {
+      kicker: "THE NUMBER",
+      title: "数字不是雷数",
+      description: "每个数字等于周围八格所有雷的复数之和的模长。",
+      points: [
+        "四种雷：+1、−1、+i、−i；地狱模式还有 0。",
+        "例如 +1 与 +i 相邻，|1 + i| = √2。",
+        "数字相同，雷的组合可能完全不同。"
+      ],
+      tip: "先看模长，再判断方向。",
+      visual: `
+        <div class="tut-stage">
+          <span class="tut-eyebrow">周围八格 · 复数相加</span>
+          <div class="tut-flag-row">
+            <span class="tut-flag p1">+1</span>
+            <span class="tut-flag n1">−1</span>
+            <span class="tut-flag pi">+i</span>
+            <span class="tut-flag ni">−i</span>
+          </div>
+          <div class="tut-equation"><span>|1 + i|</span><b>=</b><strong>√2</strong></div>
+          <div class="tut-cell tut-number">√2</div>
+          <span class="tut-summary">数字显示的是模长，不是雷的数量。</span>
+        </div>`
+    },
+    {
+      kicker: "ZERO",
+      title: "0 有两种含义",
+      description: "空白格和数字 0 看起来都空，但规则不同。",
+      points: [
+        "空白格：周围没有任何雷，翻开会连锁展开。",
+        "数字 0：周围有雷，但它们的复数相加为 0。",
+        "0 不会自动展开，需要自己判断。"
+      ],
+      tip: "别把数字 0 当成空白格。",
+      visual: `
+        <div class="tut-stage">
+          <span class="tut-eyebrow">同样是 0，含义不同</span>
+          <div class="tut-compare">
+            <div class="tut-example">
+              <div class="tut-cell is-empty"></div>
+              <strong>空白格</strong>
+              <small>周围没有雷</small>
+            </div>
+            <div class="tut-example">
+              <div class="tut-cell tut-number is-zero">0</div>
+              <strong>数字 0</strong>
+              <small>有雷，但互相抵消</small>
+            </div>
+          </div>
+          <div class="tut-callout">+1 + (−1) = 0<br>+i + (−i) = 0</div>
+          <span class="tut-summary">数字 0 的格子不会自动展开。</span>
+        </div>`
+    },
+    {
+      kicker: "CONTROLS",
+      title: "翻开、标记、选旗",
+      description: "左键负责翻开，右键只放普通红旗；需要指定雷型时，用中键或长按呼出轮盘。",
+      points: [
+        "桌面端：中键打开轮盘；手机端：长按格子。",
+        "轮盘打开后，用左键点选雷型或清除。",
+        "普通红旗用于占位，不参与复数计算。"
+      ],
+      tip: "选错类型时，可以重新选旗或清除。",
+      visual: `
+        <div class="tut-stage">
+          <div class="tut-controls">
+            <div class="tut-control"><kbd>左键</kbd><span>翻开格子；点击数字可扩展</span></div>
+            <div class="tut-control"><kbd>右键</kbd><span>切换普通红旗</span></div>
+            <div class="tut-control"><kbd>中键 / 长按</kbd><span>呼出轮盘，左键点选</span></div>
+          </div>
+          <span class="tut-option-title">普通 / 困难：4 种雷 + 清除 · 地狱：+ 0 雷</span>
+          <div class="tut-option-row">
+            <span class="tut-flag p1">+1</span>
+            <span class="tut-flag n1">−1</span>
+            <span class="tut-flag pi">+i</span>
+            <span class="tut-flag ni">−i</span>
+            <span class="tut-flag z0">0</span>
+            <span class="tut-flag clear">×</span>
+          </div>
+          <span class="tut-summary">长按松手不会关闭轮盘，点空白处退出。</span>
+        </div>`
+    },
+    {
+      kicker: "CHORD",
+      title: "数字也能扩展",
+      description: "当数字周围“旗子数量 == 雷数”且“类型旗复数和的模 == 数字”时，点击数字可一次翻开周围未标记格。",
+      points: [
+        "普通红旗计入数量，但不计入复数。",
+        "条件不满足会提示“此数字无法扩展”。",
+        "扩展踩中多颗雷，也只扣 1 点血量。"
+      ],
+      tip: "先补全旗子，再点数字。",
+      visual: `
+        <div class="tut-stage">
+          <div class="tut-chord-grid">
+            <span class="tut-flag p1">+1</span>
+            <span class="tut-cell is-empty"></span>
+            <span class="tut-flag pi">+i</span>
+            <span class="tut-cell is-empty"></span>
+            <span class="tut-cell tut-number">√2</span>
+            <span class="tut-cell is-empty"></span>
+            <span class="tut-cell is-empty"></span>
+            <span class="tut-cell is-empty"></span>
+            <span class="tut-cell is-empty"></span>
+          </div>
+          <div class="tut-check-row">
+            <span>2 面旗 = 2 颗雷</span>
+            <span>|1 + i| = √2</span>
+          </div>
+          <div class="tut-callout">点击 √2，周围未标记的格子会全部翻开；踩中雷也只扣 1 点血量。</div>
+        </div>`
+    },
+    {
+      kicker: "BLOOD",
+      title: "血量与胜利",
+      description: "踩雷会扣血量，血量归零后再踩一次才判负；翻开全部安全格即胜利。",
+      points: [
+        "普通 / 困难：3 点血量；地狱：4 点。",
+        "每次踩雷损失 1 点，扩展踩雷也只算 1 次。",
+        "顶部心形和侧栏“血量”显示剩余血量。"
+      ],
+      tip: "普通 20 雷，困难 47 雷，地狱 25 雷 + 0 雷。",
+      visual: `
+        <div class="tut-stage">
+          <div class="tut-hearts">♥ ♥ ♥</div>
+          <div class="tut-progress-line"><i></i></div>
+          <div class="tut-end-card">
+            <span>翻开全部安全格</span>
+            <strong>排雷成功</strong>
+          </div>
+          <div class="tut-callout">普通 / 困难 3 点血量，地狱 4 点；血量归零后再踩一次雷才失败。</div>
+        </div>`
+    }
+  ];
 
+  // The public build intentionally ships without the emoji reaction assets.
+  const HIT_EMOJIS = [];
 
   /* =========================================================
      DOM
@@ -78,14 +232,17 @@
   let state = null;
   let press = null;
   let wheelState = null;
+  let tutorialStep = 0;
   let toastTimer = null;
   let toastHideTimer = null;
   let resultTimer = null;
   let hitTimer = null;
+  let hitEmojiTimer = null;
 
   function cacheDom() {
     dom.screenMenu = document.getElementById("screen-menu");
     dom.screenGame = document.getElementById("screen-game");
+    dom.screenTutorial = document.getElementById("screen-tutorial");
 
     dom.menuActions = document.getElementById("menu-actions");
     dom.difficultyPanel = document.getElementById("difficulty-panel");
@@ -93,6 +250,20 @@
     dom.btnTutorial = document.getElementById("btn-tutorial");
     dom.btnDifficultyBack = document.getElementById("btn-difficulty-back");
     dom.difficultyCards = Array.from(document.querySelectorAll(".difficulty-card"));
+
+    dom.btnTutorialBack = document.getElementById("btn-tutorial-back");
+    dom.btnTutorialPrev = document.getElementById("btn-tutorial-prev");
+    dom.btnTutorialNext = document.getElementById("btn-tutorial-next");
+    dom.btnTutorialSkip = document.getElementById("btn-tutorial-skip");
+    dom.tutorialVisual = document.getElementById("tutorial-visual");
+    dom.tutorialTitle = document.getElementById("tutorial-title");
+    dom.tutorialDesc = document.getElementById("tutorial-desc");
+    dom.tutorialList = document.getElementById("tutorial-list");
+    dom.tutorialTip = document.getElementById("tutorial-tip");
+    dom.tutorialDots = document.getElementById("tutorial-dots");
+    dom.tutorialStepLabel = document.getElementById("tutorial-step-label");
+    dom.tutorialStepNo = document.getElementById("tutorial-step-no");
+    dom.tutorialKicker = document.getElementById("tutorial-kicker");
 
     dom.btnBack = document.getElementById("btn-back");
     dom.btnRestart = document.getElementById("btn-restart");
@@ -114,6 +285,8 @@
     dom.modeSize = document.getElementById("mode-size");
     dom.boardModeTitle = document.getElementById("board-mode-title");
     dom.boardKicker = document.getElementById("board-kicker");
+    dom.hitEmoji = document.getElementById("hit-emoji");
+    dom.hitEmojiImg = document.getElementById("hit-emoji-img");
 
     dom.typeStats = document.getElementById("type-stats");
     dom.safeProgressText = document.getElementById("safe-progress-text");
@@ -156,18 +329,26 @@
   function bindEvents() {
     dom.btnStart.addEventListener("click", () => openDifficulty(true));
     dom.btnDifficultyBack.addEventListener("click", () => openDifficulty(false));
-    dom.btnTutorial.addEventListener("click", () => {
-      showToast("教程还在制作中，先直接开一局吧");
+    dom.btnTutorial.addEventListener("click", openTutorial);
+
+    dom.btnTutorialBack.addEventListener("click", closeTutorial);
+    dom.btnTutorialPrev.addEventListener("click", () => setTutorialStep(tutorialStep - 1));
+    dom.btnTutorialNext.addEventListener("click", () => {
+      if (tutorialStep >= TUTORIAL_STEPS.length - 1) {
+        closeTutorial();
+        openDifficulty(true);
+        return;
+      }
+      setTutorialStep(tutorialStep + 1);
+    });
+    dom.btnTutorialSkip.addEventListener("click", () => {
+      closeTutorial();
+      openDifficulty(true);
     });
 
     dom.difficultyCards.forEach((card) => {
       card.addEventListener("click", () => {
-        const difficulty = card.dataset.difficulty;
-        if (difficulty === "hell") {
-          showToast("地狱模式正在制作中，敬请期待");
-          return;
-        }
-        startGame(difficulty);
+        startGame(card.dataset.difficulty);
       });
     });
 
@@ -220,6 +401,20 @@
   }
 
   function onKeyDown(event) {
+    if (dom.screenTutorial && !dom.screenTutorial.hidden) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeTutorial();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        setTutorialStep(tutorialStep - 1);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        setTutorialStep(tutorialStep + 1);
+      }
+      return;
+    }
+
     if (event.key !== "Escape") return;
 
     if (wheelState) {
@@ -248,12 +443,77 @@
 
     if (open) {
       window.setTimeout(() => {
-        const normalCard = dom.difficultyPanel.querySelector('[data-difficulty="normal"]');
-        normalCard?.focus({ preventScroll: true });
+        dom.btnDifficultyBack?.focus({ preventScroll: true });
       }, 60);
     } else {
       dom.btnStart.focus({ preventScroll: true });
     }
+  }
+
+  function openTutorial() {
+    hideToast();
+    openDifficulty(false);
+    dom.screenMenu.hidden = true;
+    dom.screenGame.hidden = true;
+    dom.screenTutorial.hidden = false;
+    tutorialStep = 0;
+    renderTutorial();
+    window.scrollTo({ top: 0, behavior: "auto" });
+    dom.btnTutorialBack.focus({ preventScroll: true });
+  }
+
+  function closeTutorial() {
+    dom.screenTutorial.hidden = true;
+    dom.screenMenu.hidden = false;
+    dom.btnTutorial.focus({ preventScroll: true });
+  }
+
+  function setTutorialStep(index) {
+    const next = Math.max(0, Math.min(TUTORIAL_STEPS.length - 1, index));
+    if (next === tutorialStep) return;
+    tutorialStep = next;
+    renderTutorial();
+  }
+
+  function renderTutorial() {
+    const step = TUTORIAL_STEPS[tutorialStep];
+    const isLast = tutorialStep === TUTORIAL_STEPS.length - 1;
+    const total = TUTORIAL_STEPS.length;
+    const current = String(tutorialStep + 1).padStart(2, "0");
+
+    dom.tutorialVisual.innerHTML = step.visual;
+    dom.tutorialTitle.textContent = step.title;
+    dom.tutorialDesc.textContent = step.description;
+    dom.tutorialTip.textContent = step.tip;
+    dom.tutorialStepNo.textContent = current;
+    dom.tutorialStepLabel.textContent = `${current} / ${String(total).padStart(2, "0")}`;
+    dom.tutorialKicker.textContent = step.kicker;
+
+    dom.tutorialList.replaceChildren(
+      ...step.points.map((point) => {
+        const item = document.createElement("li");
+        item.textContent = point;
+        return item;
+      })
+    );
+
+    dom.tutorialDots.replaceChildren(
+      ...TUTORIAL_STEPS.map((_, index) => {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = `tutorial-dot${index === tutorialStep ? " is-active" : ""}`;
+        dot.setAttribute("aria-label", `第 ${index + 1} 步`);
+        dot.setAttribute("aria-current", index === tutorialStep ? "step" : "false");
+        dot.addEventListener("click", () => setTutorialStep(index));
+        return dot;
+      })
+    );
+
+    dom.btnTutorialPrev.disabled = tutorialStep === 0;
+    dom.btnTutorialNext.innerHTML = isLast
+      ? "进入难度选择 <span aria-hidden=\"true\">→</span>"
+      : "下一步 <span aria-hidden=\"true\">→</span>";
+    dom.btnTutorialSkip.textContent = isLast ? "直接开始" : "跳过教程";
   }
 
   function goMenu() {
@@ -262,10 +522,12 @@
     closeWheel();
     hideResultModal();
     hideToast();
+    hideHitEmoji();
 
     if (state) state.screen = "menu";
 
     dom.screenGame.hidden = true;
+    dom.screenTutorial.hidden = true;
     dom.screenMenu.hidden = false;
     openDifficulty(false);
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -285,11 +547,13 @@
     closeWheel();
     hideResultModal();
     hideToast();
+    hideHitEmoji();
 
     const board = Array.from({ length: config.rows * config.cols }, makeCell);
     const neighborMap = Array.from({ length: board.length }, (_, index) =>
       getNeighborIndices(index, config.rows, config.cols)
     );
+    const activeTypes = config.zeroMines ? ZERO_TYPE_ORDER : TYPE_ORDER;
 
     state = {
       screen: "game",
@@ -302,9 +566,11 @@
       chances: config.chances,
       mistakes: 0,
       safeRevealed: 0,
+      zeroMines: Boolean(config.zeroMines),
+      activeTypes,
       board,
       neighborMap,
-      typeTotals: createTypeTotals(config.mines),
+      typeTotals: createTypeTotals(config.mines, Boolean(config.zeroMines)),
       generated: false,
       ended: false,
       won: false,
@@ -315,6 +581,7 @@
     };
 
     dom.screenMenu.hidden = true;
+    dom.screenTutorial.hidden = true;
     dom.screenGame.hidden = false;
     dom.boardWrap.classList.remove("is-hit", "is-ended");
     dom.boardFooter.hidden = false;
@@ -333,6 +600,7 @@
     dom.board.classList.toggle("is-large", config.cols >= 15);
 
     buildBoard();
+    buildWheel();
     buildTypeStats();
     updateLives();
     updateRunStats();
@@ -370,12 +638,16 @@
     };
   }
 
-  function createTypeTotals(mineCount) {
-    const totals = { p1: 2, n1: 2, pi: 2, ni: 2 };
-    let remaining = Math.max(0, mineCount - 8);
+  function createTypeTotals(mineCount, includeZero = false) {
+    const types = includeZero ? ZERO_TYPE_ORDER : TYPE_ORDER;
+    const totals = { p1: 0, n1: 0, pi: 0, ni: 0, z0: 0 };
+    types.forEach((type) => {
+      totals[type] = 2;
+    });
+    let remaining = Math.max(0, mineCount - types.length * 2);
 
     while (remaining > 0) {
-      const key = TYPE_ORDER[Math.floor(Math.random() * TYPE_ORDER.length)];
+      const key = types[Math.floor(Math.random() * types.length)];
       totals[key] += 1;
       remaining -= 1;
     }
@@ -422,9 +694,9 @@
     dom.board.appendChild(fragment);
   }
 
-  function createTypeTotalsPool(typeTotals) {
+  function createTypeTotalsPool(typeTotals, types = TYPE_ORDER) {
     const pool = [];
-    TYPE_ORDER.forEach((type) => {
+    types.forEach((type) => {
       for (let i = 0; i < typeTotals[type]; i += 1) pool.push(type);
     });
     return pool;
@@ -449,7 +721,7 @@
 
     shuffle(candidates);
 
-    const mineTypes = createTypeTotalsPool(state.typeTotals);
+    const mineTypes = createTypeTotalsPool(state.typeTotals, state.activeTypes);
     shuffle(mineTypes);
 
     candidates.slice(0, state.mines).forEach((index, mineIndex) => {
@@ -846,6 +1118,7 @@
     state.chances = Math.max(0, state.chancesTotal - Math.min(state.mistakes, state.chancesTotal));
 
     shakeBoard();
+    playHitEmoji();
     updateLives();
     updateRunStats();
     updateTypeStats();
@@ -942,13 +1215,47 @@
     }, 450);
   }
 
+  function playHitEmoji() {
+    if (!dom.hitEmoji) return;
+
+    const choice = HIT_EMOJIS[Math.floor(Math.random() * HIT_EMOJIS.length)];
+
+    if (dom.hitEmojiImg?.parentNode === dom.hitEmoji) {
+      const nextImage = dom.hitEmojiImg.cloneNode(false);
+      nextImage.src = choice.src;
+      dom.hitEmojiImg.replaceWith(nextImage);
+      dom.hitEmojiImg = nextImage;
+    }
+
+    dom.hitEmoji.dataset.kind = choice.key;
+    dom.hitEmoji.classList.remove("is-active");
+    void dom.hitEmoji.offsetWidth;
+    dom.hitEmoji.classList.add("is-active");
+
+    if (hitEmojiTimer) window.clearTimeout(hitEmojiTimer);
+    hitEmojiTimer = window.setTimeout(() => {
+      dom.hitEmoji.classList.remove("is-active");
+      hitEmojiTimer = null;
+    }, 5000);
+  }
+
+  function hideHitEmoji() {
+    if (hitEmojiTimer) {
+      window.clearTimeout(hitEmojiTimer);
+      hitEmojiTimer = null;
+    }
+    dom.hitEmoji?.classList.remove("is-active");
+  }
 
   /* =========================================================
      Flag wheel
      ========================================================= */
 
   function buildWheel() {
-    dom.wheelOptions.innerHTML = WHEEL_KEYS.map((key) => {
+    const types = state?.activeTypes || TYPE_ORDER;
+    const keys = [...types, "clear"];
+
+    dom.wheelOptions.innerHTML = keys.map((key) => {
       const isClear = key === "clear";
       const label = isClear
         ? "清除标记"
@@ -1028,7 +1335,7 @@
     dom.flagWheel.style.setProperty("--r", `${radius}px`);
 
     const optionGeometry = options.map((element, index) => {
-      const angle = (WHEEL_ANGLES[index] * Math.PI) / 180;
+      const angle = ((-90 + (360 / options.length) * index) * Math.PI) / 180;
       const offsetX = Math.cos(angle) * radius;
       const offsetY = Math.sin(angle) * radius;
 
@@ -1220,7 +1527,7 @@
   }
 
   function buildTypeStats() {
-    dom.typeStats.innerHTML = TYPE_ORDER.map((type) => {
+    dom.typeStats.innerHTML = state.activeTypes.map((type) => {
       const meta = TYPE_META[type];
 
       return `
@@ -1241,7 +1548,7 @@
   function updateTypeStats() {
     if (!state) return;
 
-    const used = { p1: 0, n1: 0, pi: 0, ni: 0 };
+    const used = { p1: 0, n1: 0, pi: 0, ni: 0, z0: 0 };
 
     state.board.forEach((cell) => {
       if (cell.detonated && cell.mine) {
@@ -1251,7 +1558,7 @@
       }
     });
 
-    TYPE_ORDER.forEach((type) => {
+    state.activeTypes.forEach((type) => {
       const root = dom.typeStats.querySelector(`[data-type-stat="${type}"]`);
       if (!root) return;
 

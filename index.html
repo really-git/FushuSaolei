@@ -50,7 +50,7 @@
             </button>
             <button id="btn-tutorial" class="btn btn-ghost" type="button">
               <span>教程</span>
-              <span class="soon-badge">即将开放</span>
+              <span class="soon-badge">5 步上手</span>
             </button>
           </div>
 
@@ -89,14 +89,14 @@
                   <i>√2</i><i class="mini-flag mini-teal">−i</i><i>1</i>
                 </span>
               </button>
-              <button class="difficulty-card is-coming" data-difficulty="hell" type="button" aria-disabled="true">
+              <button class="difficulty-card is-hell" data-difficulty="hell" type="button">
                 <span class="difficulty-top">
                   <span class="difficulty-name">地狱</span>
-                  <span class="soon-badge">SOON</span>
+                  <span class="ready-badge">OPEN</span>
                 </span>
-                <span class="difficulty-size">敬请期待</span>
-                <span class="difficulty-meta">更深的复平面 · 未知规则</span>
-                <span class="locked-note">正在制作中</span>
+                <span class="difficulty-size">11 × 11</span>
+                <span class="difficulty-meta">25 颗雷 · 4 点血量</span>
+                <span class="locked-note">零雷出没</span>
                 <span class="hell-glyph" aria-hidden="true">
                   <svg viewBox="0 0 24 24"><path d="M12.2 2.4c1.7 3.1.4 5.1-1 7-1.1 1.5-2.2 3-2.2 5.1a5.2 5.2 0 0 0 10.4 0c0-2.1-1-3.7-2.5-5.5-.5 1.3-1.2 2-2.2 2.4.7-2.7.1-5.6-2.5-9Z"/><path d="M12.4 15.1c.9 1.1.3 2.1-.4 2.8-.5.6-.4 1.3.2 1.8" fill="none"/></svg>
                 </span>
@@ -146,6 +146,54 @@
         <span>COMPLEX FIELD / 01</span>
         <span>左键翻开 · 右键标记 · 中键/长按选旗</span>
         <span>v1.0</span>
+      </footer>
+    </main>
+
+    <main id="screen-tutorial" class="screen screen-tutorial" hidden>
+      <header class="tutorial-top">
+        <button id="btn-tutorial-back" class="back-button" type="button" aria-label="返回主菜单">
+          <span class="back-arrow" aria-hidden="true">←</span>
+          <span>返回</span>
+        </button>
+
+        <div class="tutorial-heading">
+          <span>HOW TO PLAY</span>
+          <strong>五步上手</strong>
+        </div>
+
+        <div class="tutorial-progress">
+          <span id="tutorial-step-label">01 / 05</span>
+          <div id="tutorial-dots" class="tutorial-dots" aria-label="教程步骤"></div>
+        </div>
+      </header>
+
+      <section class="tutorial-shell" aria-live="polite">
+        <div id="tutorial-visual" class="tutorial-visual"></div>
+
+        <div class="tutorial-copy">
+          <div class="tutorial-step-row">
+            <span id="tutorial-step-no" class="tutorial-step-no">01</span>
+            <span class="tutorial-step-total">/ 05</span>
+            <span id="tutorial-kicker" class="tutorial-kicker">THE NUMBER</span>
+          </div>
+
+          <h2 id="tutorial-title">数字不是雷数</h2>
+          <p id="tutorial-desc"></p>
+          <ul id="tutorial-list" class="tutorial-list"></ul>
+          <div id="tutorial-tip" class="tutorial-tip"></div>
+
+          <div class="tutorial-actions">
+            <button id="btn-tutorial-prev" class="btn btn-ghost btn-small" type="button">上一步</button>
+            <button id="btn-tutorial-next" class="btn btn-primary btn-small" type="button">下一步 <span aria-hidden="true">→</span></button>
+            <button id="btn-tutorial-skip" class="text-button" type="button">跳过教程</button>
+          </div>
+        </div>
+      </section>
+
+      <footer class="tutorial-footer">
+        <span>COMPLEX FIELD / GUIDE</span>
+        <span>先懂规则，再拆复平面</span>
+        <span>← → 切换步骤</span>
       </footer>
     </main>
 
