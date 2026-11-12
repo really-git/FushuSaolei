@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#edf6ff">
+  <title>复数扫雷 · Complex Minesweeper</title>
+  <meta name="description" content="四种复数雷 +1、-1、+i、-i，格子数字是周围八格雷之和的模。">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%230f2a4a'/%3E%3Cpath d='M16 32h32M32 16v32' stroke='%23ffffff' stroke-opacity='.22' stroke-width='2'/%3E%3Ccircle cx='32' cy='32' r='15' fill='none' stroke='%235fb2f0' stroke-width='2' stroke-dasharray='3 4'/%3E%3Ccircle cx='44' cy='32' r='6' fill='%23f0a521'/%3E%3Ccircle cx='32' cy='20' r='5' fill='%237c5cff'/%3E%3Ccircle cx='20' cy='32' r='5' fill='%232f9cde'/%3E%3Ccircle cx='32' cy='44' r='5' fill='%2315a59e'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+  <div class="ambient ambient-three" aria-hidden="true"></div>
+
+  <div class="app">
+    <main id="screen-menu" class="screen screen-menu">
+      <header class="menu-top">
+        <a class="brand" href="#" aria-label="复数扫雷首页">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 44 44">
+              <rect x="1" y="1" width="42" height="42" rx="13" fill="#0f2a4a"/>
+              <path d="M11 22h22M22 11v22" stroke="#ffffff" stroke-opacity=".22" stroke-width="1.4"/>
+              <circle cx="22" cy="22" r="9.5" fill="none" stroke="#73b7f0" stroke-width="1.2" stroke-dasharray="2.4 2.8"/>
+              <circle cx="22" cy="22" r="2.2" fill="#ffffff"/>
+              <circle cx="30" cy="22" r="3.1" fill="#f0a521"/>
+              <circle cx="22" cy="14" r="2.7" fill="#7c5cff"/>
+              <circle cx="14" cy="22" r="2.7" fill="#2f9cde"/>
+              <circle cx="22" cy="30" r="2.7" fill="#15a59e"/>
+            </svg>
+          </span>
+          <span class="brand-copy">
+            <strong>复数扫雷</strong>
+            <span>COMPLEX MINESWEEPER</span>
+          </span>
+        </a>
+      </header>
+
+      <section class="menu-hero">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="eyebrow-line"></span> 复平面 · 排雷实验</div>
+          <h1 class="hero-title"><span>复数</span><span class="hero-title-accent">扫雷</span></h1>
+          <p class="hero-desc">雷，不只有一种。<br>在 <strong>+1 / −1 / +i / −i</strong> 的叠加里，<br>读出周围八格的<strong>模</strong>。</p>
+
+          <div id="menu-actions" class="menu-actions">
+            <button id="btn-start" class="btn btn-primary" type="button">
+              <span>开始游戏</span>
+              <span class="btn-arrow" aria-hidden="true">↗</span>
+            </button>
+            <button id="btn-tutorial" class="btn btn-ghost" type="button">
+              <span>教程</span>
+              <span class="soon-badge">即将开放</span>
+            </button>
+          </div>
+
+          <div id="difficulty-panel" class="difficulty-panel" hidden>
+            <div class="difficulty-head">
+              <div>
+                <span class="panel-kicker">SELECT FIELD</span>
+                <strong>选择难度</strong>
+              </div>
+              <button id="btn-difficulty-back" class="text-button" type="button">← 返回</button>
+            </div>
+            <div class="difficulty-grid">
+              <button class="difficulty-card" data-difficulty="normal" type="button">
+                <span class="difficulty-top">
+                  <span class="difficulty-name">普通</span>
+                  <span class="ready-badge">OPEN</span>
+                </span>
+                <span class="difficulty-size">9 × 9</span>
+                <span class="difficulty-meta">20 颗雷 · 3 点血量</span>
+                <span class="mini-board" aria-hidden="true">
+                  <i>1</i><i class="mini-flag">+i</i><i>√2</i>
+                  <i class="mini-flag mini-orange">+1</i><i>0</i><i>1</i>
+                  <i>1</i><i>√2</i><i class="mini-flag mini-teal">−i</i>
+                </span>
+              </button>
+              <button class="difficulty-card" data-difficulty="hard" type="button">
+                <span class="difficulty-top">
+                  <span class="difficulty-name">困难</span>
+                  <span class="ready-badge">OPEN</span>
+                </span>
+                <span class="difficulty-size">15 × 15</span>
+                <span class="difficulty-meta">47 颗雷 · 4 点血量</span>
+                <span class="mini-board mini-hard" aria-hidden="true">
+                  <i>2</i><i class="mini-flag">+i</i><i>√5</i>
+                  <i class="mini-flag mini-orange">+1</i><i>0</i><i>2</i>
+                  <i>√2</i><i class="mini-flag mini-teal">−i</i><i>1</i>
+                </span>
+              </button>
+              <button class="difficulty-card is-coming" data-difficulty="hell" type="button" aria-disabled="true">
+                <span class="difficulty-top">
+                  <span class="difficulty-name">地狱</span>
+                  <span class="soon-badge">SOON</span>
+                </span>
+                <span class="difficulty-size">敬请期待</span>
+                <span class="difficulty-meta">更深的复平面 · 未知规则</span>
+                <span class="locked-note">正在制作中</span>
+                <span class="hell-glyph" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12.2 2.4c1.7 3.1.4 5.1-1 7-1.1 1.5-2.2 3-2.2 5.1a5.2 5.2 0 0 0 10.4 0c0-2.1-1-3.7-2.5-5.5-.5 1.3-1.2 2-2.2 2.4.7-2.7.1-5.6-2.5-9Z"/><path d="M12.4 15.1c.9 1.1.3 2.1-.4 2.8-.5.6-.4 1.3.2 1.8" fill="none"/></svg>
+                </span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="hero-art" aria-hidden="true">
+          <div class="plane">
+            <div class="plane-grid"></div>
+            <span class="axis-label axis-re">Re</span>
+            <span class="axis-label axis-im">Im</span>
+            <div class="plane-axis axis-x"></div>
+            <div class="plane-axis axis-y"></div>
+            <div class="plane-orbit orbit-large"></div>
+            <div class="plane-orbit orbit-small"></div>
+            <div class="plane-origin"></div>
+            <div class="plane-point point-p1">
+              <span class="point-mark">+1</span>
+              <small>正实</small>
+            </div>
+            <div class="plane-point point-n1">
+              <span class="point-mark">−1</span>
+              <small>负实</small>
+            </div>
+            <div class="plane-point point-pi">
+              <span class="point-mark">+i</span>
+              <small>正虚</small>
+            </div>
+            <div class="plane-point point-ni">
+              <span class="point-mark">−i</span>
+              <small>负虚</small>
+            </div>
+            <div class="plane-note note-top">8 个邻居相加</div>
+            <div class="plane-formula">
+              <span>|Σ z|</span>
+              <strong>√2</strong>
+            </div>
+            <div class="plane-watermark">z</div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="menu-footer">
+        <span>COMPLEX FIELD / 01</span>
+        <span>左键翻开 · 右键标记 · 中键/长按选旗</span>
+        <span>v1.0</span>
+      </footer>
+    </main>
+
+    <main id="screen-game" class="screen screen-game" hidden>
+      <header class="game-top">
+        <button id="btn-back" class="back-button" type="button" aria-label="返回主菜单">
+          <span class="back-arrow" aria-hidden="true">←</span>
+          <span>返回</span>
+        </button>
+
+        <div class="mode-pill">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="mode-label">普通模式</span>
+          <i id="mode-size">9 × 9</i>
+        </div>
+
+        <div class="top-stats">
+          <div id="top-lives-stat" class="top-stat lives-stat" title="3 点血量，第 4 次踩雷失败">
+            <span class="top-stat-label">血量</span>
+            <div id="top-lives" class="top-lives" aria-label="剩余 3 点血量"></div>
+          </div>
+          <div class="top-stat timer-stat">
+            <span class="top-stat-label">时间</span>
+            <strong id="timer">00:00</strong>
+          </div>
+          <button id="btn-restart" class="square-button" type="button" aria-label="重新开始本局" title="重新开始本局">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 11a8 8 0 1 0-2.3 6.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M20 4v7h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="game-layout">
+        <section class="board-panel" aria-label="棋盘区域">
+          <div class="board-head">
+            <div class="board-title">
+              <span id="board-kicker" class="section-kicker">MINE FIELD / 09 × 09</span>
+              <h2 id="board-mode-title">普通模式</h2>
+            </div>
+            <div id="game-status" class="game-status">
+              <span class="status-dot" aria-hidden="true"></span>
+              <span id="game-status-text">进行中</span>
+            </div>
+          </div>
+
+          <div id="board-wrap" class="board-wrap">
+            <div id="board" class="board" role="grid" aria-label="复数扫雷棋盘"></div>
+          </div>
+
+          <div id="board-footer" class="board-footer">
+            <div class="control-hints">
+              <span class="hint"><kbd>左键</kbd> 翻开</span>
+              <span class="hint"><kbd>右键</kbd> 标普通旗</span>
+              <span class="hint"><kbd>中键 / 长按</kbd> 呼出选旗</span>
+              <span class="hint"><kbd>点数字</kbd> 满足条件时扩展</span>
+            </div>
+            <span class="footer-note">数字 = |八格雷之和|</span>
+          </div>
+
+          <div id="end-bar" class="end-bar" hidden>
+            <div class="end-bar-copy">
+              <span class="section-kicker">ROUND OVER</span>
+              <strong id="end-bar-title">本局结束</strong>
+            </div>
+            <div class="end-bar-actions">
+              <button id="btn-end-next" class="btn btn-primary btn-small" type="button">下一局</button>
+              <button id="btn-end-menu" class="btn btn-ghost btn-small" type="button">返回菜单</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side-panel" aria-label="本局数据">
+          <section class="side-card type-card">
+            <div class="side-head">
+              <span>雷型统计</span>
+              <span class="side-caption">已用 / 总数</span>
+            </div>
+            <div id="type-stats" class="type-stats"></div>
+          </section>
+
+          <section class="side-card run-card">
+            <div class="side-head">
+              <span>本局进度</span>
+              <span id="safe-progress-text" class="side-caption">0 / 61</span>
+            </div>
+            <div class="progress-track" aria-hidden="true"><i id="safe-progress-bar"></i></div>
+            <div class="run-rows">
+              <div class="run-row"><span>安全格</span><strong id="safe-count">0</strong><em>/ <span id="safe-total">61</span></em></div>
+              <div class="run-row"><span>踩雷</span><strong id="mistake-count">0</strong><em>次</em></div>
+            </div>
+            <p id="life-hint" class="life-hint">3 点血量，第 4 次踩雷失败。</p>
+          </section>
+
+          <section class="side-card formula-card">
+            <span class="section-kicker">RULE</span>
+            <p>格子数字 = 周围八格雷之和的<strong>模</strong></p>
+            <div class="formula">| z₁ + z₂ + … + z₈ |</div>
+            <p class="formula-note">周围没有雷是空白；有雷但相互抵消显示 0。</p>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <div id="flag-wheel" class="flag-wheel" aria-hidden="true">
+    <div class="wheel-stage">
+      <div class="wheel-ring"></div>
+      <div class="wheel-hub"></div>
+      <div id="wheel-options" class="wheel-options"></div>
+    </div>
+    <div class="wheel-caption">
+      <span>标记雷型</span>
+      <strong id="wheel-hint" aria-live="polite">点击选择 · 点空白关闭</strong>
+    </div>
+  </div>
+
+  <div id="result-modal" class="modal-layer" hidden>
+    <div class="result-card" role="dialog" aria-modal="true" aria-labelledby="result-title" aria-describedby="result-desc">
+      <div id="result-emblem" class="result-emblem" aria-hidden="true"></div>
+      <span id="result-kicker" class="section-kicker">FIELD CLEARED</span>
+      <h2 id="result-title">排雷成功</h2>
+      <p id="result-desc" class="result-desc">你找出了所有安全格。</p>
+
+      <div class="result-stats">
+        <div><span>用时</span><strong id="result-time">00:00</strong></div>
+        <div><span>安全格</span><strong id="result-safe">61 / 61</strong></div>
+        <div><span>踩雷</span><strong id="result-mistakes">0</strong></div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-next" class="btn btn-primary" type="button">下一局</button>
+        <button id="btn-view-board" class="btn btn-ghost" type="button">查看棋盘</button>
+        <button id="btn-menu" class="text-button modal-menu-button" type="button">返回菜单</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <noscript>
+    <div class="no-script">这个游戏需要启用 JavaScript 才能运行。</div>
+  </noscript>
+
+  <script src="script.js"></script>
+</body>
+</html>
